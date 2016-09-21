@@ -1,18 +1,13 @@
 var restify = require('restify');
 var mongojs = require('mongojs');
-var db = mongojs('origami', ['games']);
+var db = mongojs('password:username@dockerservicename/authdb?authSource=authdb', ['games']);
 var fs = require('fs');
 var multer = require('multer');
 var md5file = require('md5-file')
 var path = require('path')
 var im = require('imagemagick')
 
-var https_options = {
-  key: fs.readFileSync('path_to_ssl_certificate_key'),
-  certificate: fs.readFileSync('path_to_ssl_certificate')
-}
-
-var server = restify.createServer(https_options);
+var server = restify.createServer();
 
 /* Solving CORS development pains */
 server.use(
@@ -73,7 +68,7 @@ server.use(restify.queryParser());
 //server.use(restify.bodyParser());
 
 
-server.listen(5000, "127.0.0.1", function () {
+server.listen(5000, function () {
   console.log("Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)");
 });
 
