@@ -1,11 +1,12 @@
 var restify = require('restify');
 var mongojs = require('mongojs');
-var db = mongojs('password:username@dockerservicename/authdb?authSource=authdb', ['games']);
+var cfg = require('./config');
+var db = mongojs(cfg.dbconnectionstring, ['games']);
 var fs = require('fs');
 var multer = require('multer');
-var md5file = require('md5-file')
-var path = require('path')
-var im = require('imagemagick')
+var md5file = require('md5-file');
+var path = require('path');
+var im = require('imagemagick');
 
 var server = restify.createServer();
 
@@ -68,7 +69,7 @@ server.use(restify.queryParser());
 //server.use(restify.bodyParser());
 
 
-server.listen(5000, function () {
+server.listen(cfg.port, function () {
   console.log("Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)");
 });
 
