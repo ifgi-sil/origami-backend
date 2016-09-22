@@ -16,7 +16,5 @@ services:
       context: ./origami-mongo
     volumes:
       - ./mongo-data:/data/db
-    ports:
-      - 27017:27017
     env_file: .env
     command: --auth
