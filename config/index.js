@@ -13,11 +13,12 @@ var config = {
 var env_has_dbconnectionstring = false;
 for (var envKey in process.env) {
   if (envKey.indexOf('origami_') === 0) {
-    var configKey = envKey.substring(5);
+    var configKey = envKey.substring(8);
     if (env_has_dbconnectionstring === false && configKey === 'dbconnectionstring') {
       env_has_dbconnectionstring = true;
     }
     config[configKey] = process.env[envKey];
+    console.log(config);
   }
 }
 
