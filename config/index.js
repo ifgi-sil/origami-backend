@@ -23,7 +23,7 @@ for (var envKey in process.env) {
 }
 
 if (env_has_dbconnectionstring === false) {
-  config.dbconnectionstring = config.dbuserpass + ':' + config.dbuser + '@' + config.dbhost + '/origami-api?authSource=origami-api';
+  config.dbconnectionstring = config.dbuser + ':' + config.dbuserpass + '@' + config.dbhost + '/origami-api?authSource=origami-api';
 }
 
 module.exports = config;
