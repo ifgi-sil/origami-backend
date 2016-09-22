@@ -18,7 +18,6 @@ for (var envKey in process.env) {
       env_has_dbconnectionstring = true;
     }
     config[configKey] = process.env[envKey];
-    console.log(config);
   }
 }
 
