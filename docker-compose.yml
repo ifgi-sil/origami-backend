@@ -17,4 +17,4 @@ services:
     volumes:
       - ./mongo-data:/data/db
     env_file: .env
-    command: --auth
+    command: --auth --storageEngine wiredTiger
