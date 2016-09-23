@@ -86,6 +86,7 @@ server.use(restify.queryParser());
 
 server.listen(cfg.port, function () {
   console.log("Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)");
+  console.log(cfg.dbconnectionstring);
 });
 
 // Get only one certain game
