@@ -1,12 +1,12 @@
 var restify = require('restify');
 var mongojs = require('mongojs');
-var db = mongojs("admin:admin@db/origami-api?authSource=origami-api", ['games']);
 var cfg = require('./config');
 var fs = require('fs');
 var multer = require('multer');
 var md5file = require('md5-file');
 var path = require('path');
 var im = require('imagemagick');
+var db;
 
 var server = restify.createServer();
 
@@ -64,19 +64,19 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 
 // use this function to retry if a connection cannot be established immediately
-// (function connectWithRetry () {
-//   console.log(cfg.dbconnectionstring);
-//   db = mongojs(cfg.dbconnectionstring, ['games']);
-//   db.on('error', function (err) {
-//     console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
-//     setTimeout(connectWithRetry, 5000);
-//   });
+(function connectWithRetry () {
+  console.log(cfg.dbconnectionstring);
+  db = mongojs(cfg.dbconnectionstring, ['games']);
+  db.on('error', function (err) {
+    console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
+    setTimeout(connectWithRetry, 5000);
+  });
    
-//   db.on('connect', function () {
-//     console.log('database connected');
-//     return;
-//   });
-// })();
+  db.on('connect', function () {
+    console.log('database connected');
+    return;
+  });
+})();
 
 /* Server wide declaration was causing problems when POSTing images with multer.
   Moved it to be specific to certain routes
