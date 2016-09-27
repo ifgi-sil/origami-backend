@@ -65,7 +65,6 @@ server.use(restify.queryParser());
 
 // use this function to retry if a connection cannot be established immediately
 (function connectWithRetry () {
-  console.log(cfg.dbconnectionstring);
   db = mongojs(cfg.dbconnectionstring, ['games']);
   db.on('error', function (err) {
     console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
