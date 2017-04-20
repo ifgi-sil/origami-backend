@@ -10,6 +10,17 @@ var db;
 
 var server = restify.createServer();
 
+// Usermanagement
+var mongoose = require('mongoose');
+var jwt = require('restify-jwt');
+require('./config/schema');
+var User = mongoose.model('User');
+
+var auth = jwt({
+    secret: 'MY_SECRET',
+    userProperty: 'payload'
+});
+
 /* Solving CORS development pains */
 server.use(
   restify.CORS({
@@ -62,6 +73,14 @@ server.opts('/.*/', corsHandler, function(req, res, next) {
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
+
+//Mongoose connection
+mongoose.connect(cfg.dbconnectionstring);
+var database = mongoose.connection;
+database.on('error', console.error.bind(console, 'connection error:'));
+mongoose.connection.on('connected', function() {
+    console.log('Mongoose connected to ' + cfg.dbconnectionstring);
+});
 
 // use this function to retry if a connection cannot be established immediately
 (function connectWithRetry () {
@@ -147,7 +166,7 @@ server.del("/games/item/:name", function (req, res, next) {
 
 // Get only game metadata from the database - getting all games was shown to be slow
 server.get("/games/metadata", function (req, res, next) {
-  db.games.find({}, { name: 1, description: 1, timecompl: 1, difficulty: 1 }, function (err, data) {
+  db.games.find({}, { name: 1, description: 1, timecompl: 1, difficulty: 1 , private: 1, players: 1}, function (err, data) {
     res.writeHead(200, {
       'Content-Type': 'application/json;charset=utf-8'
     });
@@ -248,3 +267,221 @@ server.post("/games/player", restify.bodyParser(), function (req, res, next) {
   });
   return next();
 });
+
+server.post("/games/addplayer/:mail/:gamename", restify.bodyParser(), auth, function (req, res){
+    User.findOne({email: req.params.mail})
+        .then(function(user){
+            user.games.push(req.params.gamename)
+            User.findByIdAndUpdate(user._id, user, {runValidators: true, upsert: true})
+                .exec(function (err, user) {
+                    res.send(200, user);
+                });
+        })
+})
+
+server.post("/games/update/:game", restify.bodyParser(), function(req, res){
+    db.games.updateOne({_id: req.params.game}, {$push: {playerscores: req.body}}, function (err, game){
+        if (err) { console.log("error"); console.log(err); throw err; }
+        else { console.log("Updated"); console.log(game) }
+    })
+})
+
+//****************************************************************************************
+//****************************************************************************************
+//                                  Usermanagement
+//****************************************************************************************
+//****************************************************************************************
+
+server.post('/register', restify.bodyParser(), function(req, res) {
+
+    var user = new User();
+
+    User.findOne({userName: req.body.userName})
+        .then(function(users){
+            if(users == null){
+                User.findOne({email: req.body.email})
+                    .then(function(users2){
+                        if(users2 == null){
+                            user.userName = req.body.userName;
+                            user.email = req.body.email;
+                            user.firstName = req.body.firstName;
+                            user.lastName = req.body.lastName;
+                            user.registrDate = Date.now();
+                            user.birthday = req.body.birthday;
+                            user.info = req.body.info;
+
+                            user.setPassword(req.body.password);
+
+                            user.save(user, function(err, data) {
+                                var token;
+                                token = user.generateJwt();
+                                res.status(200);
+                                res.json({
+                                    "token" : token
+                                });
+                            });
+                        }
+                        else{
+                            return res.send(401)
+                        }
+                    })
+            }
+            else{
+                return res.send(401)
+            }
+        })
+
+    User.findOne({email: req.body.email})
+        .then(function(users3){
+            if(users3 == null){
+                user.userName = req.body.userName;
+                user.email = req.body.email;
+                user.firstName = req.body.firstName;
+                user.lastName = req.body.lastName;
+                user.registrDate = Date.now();
+                user.birthday = req.body.birthday;
+                user.info = req.body.info;
+
+                user.setPassword(req.body.password);
+
+                user.save(user, function(err, data) {
+                    var token;
+                    token = user.generateJwt();
+                    res.status(200);
+                    res.json({
+                        "token" : token
+                    });
+                });
+            }
+            else{
+                return res.send(401)
+            }
+        })
+});
+
+server.post('/login', restify.bodyParser(), function(req, res) {
+    var token;
+
+    User.findOne({ email: req.body.email }, function (err, user) {
+        if(user == null){
+            return res.send(401)
+        }
+        if (!user.validPassword(req.body.password)) {
+            return res.send(401);
+        }
+        token = user.generateJwt();
+        res.status(200);
+        res.json({
+            "token" : token
+        });
+    })
+
+})
+
+//Get all the users
+server.get("/users", function (req, res, next) {
+    User.find(function (err, users) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json;charset=utf-8'
+        });
+        res.end(JSON.stringify(users));
+    });
+
+    return next();
+});
+
+server.get('/profile', auth, function(req, res) {
+    if (!req.payload._id) {
+        console.log("unauthorizedError");
+        res.send(401, {
+            "message" : "UnauthorizedError: private profile"
+        });
+    } else {
+        User.findById(req.payload._id, function (err, user){
+            if(err){
+                console.log("find by ID ERRor")
+                res.send(401, "couldnt load profile");
+            } else {
+                res.send(200, user);
+            }
+        });
+    }
+});
+
+server.get('/profile/:userName', function(req, res){
+    User.findOne({userName: req.params.userName})
+        .then(function(data){
+            res.send(200, data)
+        });
+});
+
+server.get('/profileSearch/:email', auth,  function(req, res){
+    User.findOne({email: req.params.email})
+        .then(function(data){
+            res.send(200, data)
+        });
+});
+
+server.post('/profileUpdate', restify.bodyParser(), auth, function(req, res) {
+    if (!req.payload._id) {
+        res.send(401, {
+            "message": "UnauthorizedError: cannot update profile without being logged in to it"
+        });
+    } else{
+        User.findByIdAndUpdate(req.payload._id, req.body, {runValidators: true, upsert: true})
+            .exec(function (err, user) {
+                res.send(200, user);
+            });
+    }
+});
+
+server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
+    if (!req.payload._id) {
+        res.send(401, {
+            "message": "UnauthorizedError: cannot delete profile without being logged in to it"
+        });
+    } else {
+        User.findById(req.payload._id)
+            .exec(function (err, value) {
+                if(err) {
+                    res.send(401, {
+                        "message": "DeleteError: could not delete feature"
+                    });
+                } else {
+                    value.remove();
+                    res.send(200, 'removed Feature');
+                }
+
+            });
+    }
+});
+server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
+    User.findOne({email: req.params.email})
+        .then(function (data) {
+            if(data == null){
+                res.send(401)
+            }
+            else{
+                res.send(200, data)
+            }
+        })
+});
+server.get('/friendUser/:userName', restify.bodyParser(), function (req, res) {
+    User.findOne({userName: req.params.userName})
+        .then(function (data) {
+            if(data == null){
+                res.send(404)
+            }
+            else{
+                res.send(200, data);
+            }
+        })
+});
+server.post('/friendUpdate', restify.bodyParser(), function(req, res){
+    User.findOne({_id: req.body._id})
+        .then(function (user) {
+            user.games.push(req.body.games[req.body.games.length-1])
+            user.save();
+            res.send(200)
+        });
+})
