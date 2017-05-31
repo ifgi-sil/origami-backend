@@ -269,7 +269,7 @@ server.post("/games/player", restify.bodyParser(), function (req, res, next) {
 });
 
 server.post("/games/addplayer/:mail/:gamename", restify.bodyParser(), auth, function (req, res){
-    User.findOne({email: req.params.mail})
+    User.findOne({userName: req.params.mail})
         .then(function(user){
             user.games.push(req.params.gamename)
             User.findByIdAndUpdate(user._id, user, {runValidators: true, upsert: true})
@@ -277,14 +277,20 @@ server.post("/games/addplayer/:mail/:gamename", restify.bodyParser(), auth, func
                     res.send(200, user);
                 });
         })
-})
+});
 
 server.post("/games/update/:game", restify.bodyParser(), function(req, res){
-    db.games.updateOne({_id: req.params.game}, {$push: {playerscores: req.body}}, function (err, game){
-        if (err) { console.log("error"); console.log(err); throw err; }
-        else { console.log("Updated"); console.log(game) }
+    db.games.update({ _id: mongojs.ObjectId(req.params.game)}, {$push: {playerscores: req.body}}, function (err, game){
+        if (err) throw err;
     })
-})
+});
+
+server.get("/getShowGame/:id", function(req, res){
+    db.games.findOne({_id: mongojs.ObjectId(req.params.id)}, function(err, game) {
+        console.log(game);
+        res.send(200, game);
+    })
+});
 
 //****************************************************************************************
 //****************************************************************************************
