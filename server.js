@@ -13,7 +13,7 @@ var server = restify.createServer();
 // Usermanagement
 var mongoose = require('mongoose');
 var jwt = require('restify-jwt');
-require('./config/schema');
+require('./schema');
 var User = mongoose.model('User');
 
 var auth = jwt({
@@ -301,12 +301,18 @@ server.get("/getShowGame/:id", function(req, res){
 server.post('/register', restify.bodyParser(), function(req, res) {
 
     var user = new User();
+    console.log("Register Body--------------")
+    console.log(req.body);
 
     User.findOne({userName: req.body.userName})
         .then(function(users){
+            console.log("found registered user--------------");
+            console.log(users)
             if(users == null){
                 User.findOne({email: req.body.email})
                     .then(function(users2){
+                        console.log("found registered user2-------------");
+                        console.log(users2)
                         if(users2 == null){
                             user.userName = req.body.userName;
                             user.email = req.body.email;
@@ -339,6 +345,8 @@ server.post('/register', restify.bodyParser(), function(req, res) {
 
     User.findOne({email: req.body.email})
         .then(function(users3){
+            console.log("found registered user3----------------");
+            console.log(users3)
             if(users3 == null){
                 user.userName = req.body.userName;
                 user.email = req.body.email;
@@ -368,14 +376,21 @@ server.post('/register', restify.bodyParser(), function(req, res) {
 server.post('/login', restify.bodyParser(), function(req, res) {
     var token;
 
+    console.log("loginBody---------------");
+    console.log(req.body)
     User.findOne({ email: req.body.email }, function (err, user) {
+        console.log("found login user----------");
+        console.log(user)
         if(user == null){
             return res.send(401)
         }
         if (!user.validPassword(req.body.password)) {
+            console.log("Login wrong password--------------------");
             return res.send(401);
         }
         token = user.generateJwt();
+        console.log("login generated token------------------");
+        console.log(token)
         res.status(200);
         res.json({
             "token" : token
@@ -404,6 +419,8 @@ server.get('/profile', auth, function(req, res) {
         });
     } else {
         User.findById(req.payload._id, function (err, user){
+            console.log("Load Profile user-------------");
+            console.log(user)
             if(err){
                 console.log("find by ID ERRor")
                 res.send(401, "couldnt load profile");
@@ -415,8 +432,12 @@ server.get('/profile', auth, function(req, res) {
 });
 
 server.get('/profile/:userName', function(req, res){
+    console.log("fing User with name---------------");
+    console.log(req.params.userName)
     User.findOne({userName: req.params.userName})
         .then(function(data){
+            console.log("found user with name----------------");
+            console.log(data)
             res.send(200, data)
         });
 });

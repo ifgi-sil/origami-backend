@@ -4,9 +4,9 @@
 'use strict';
 
 var config = {
-  dbhost: 'db',
-  dbuser: '',
-  dbuserpass: '',
+  dbhost: 'localhost:27017',
+  dbuser: 'admin',
+  dbuserpass: 'admin',
   port: 5000
 };
 
