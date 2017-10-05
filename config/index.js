@@ -4,10 +4,10 @@
 'use strict';
 
 var config = {
-  dbhost: 'db',
-  dbuser: '',
-  dbuserpass: '',
-  port: 5000
+    dbhost: 'db',
+    dbuser: '',
+    dbuserpass: '',
+    port: 5000
 };
 
 var env_has_dbconnectionstring = false;

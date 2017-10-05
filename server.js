@@ -21,6 +21,12 @@ var auth = jwt({
     userProperty: 'payload'
 });
 
+//Mailgun
+var mailgun = require("mailgun-js");
+var api_key = '';
+var DOMAIN = '';
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
+
 /* Solving CORS development pains */
 server.use(
   restify.CORS({
@@ -296,6 +302,7 @@ server.get("/getShowGame/:id", function(req, res){
 //****************************************************************************************
 //****************************************************************************************
 
+//Register
 server.post('/register', restify.bodyParser(), function(req, res) {
 
     var user = new User();
@@ -316,6 +323,16 @@ server.post('/register', restify.bodyParser(), function(req, res) {
 
                             user.setPassword(req.body.password);
 
+                            var data = {
+                                from: '',
+                                to: req.body.email,
+                                subject: 'Registered',
+                                text: 'Hello, You have successfully registered for OriGami!'
+                            };
+                            mailgun.messages().send(data, function (error, body) {
+                                console.log("mail send");
+                            });
+
                             user.save(user, function(err, data) {
                                 var token;
                                 token = user.generateJwt();
@@ -324,6 +341,7 @@ server.post('/register', restify.bodyParser(), function(req, res) {
                                     "token" : token
                                 });
                             });
+                            return res.status(200);
                         }
                         else{
                             return res.send(401)
@@ -334,35 +352,9 @@ server.post('/register', restify.bodyParser(), function(req, res) {
                 return res.send(401)
             }
         })
-
-    User.findOne({email: req.body.email})
-        .then(function(users3){
-            if(users3 == null){
-                user.userName = req.body.userName;
-                user.email = req.body.email;
-                user.firstName = req.body.firstName;
-                user.lastName = req.body.lastName;
-                user.registrDate = Date.now();
-                user.birthday = req.body.birthday;
-                user.info = req.body.info;
-
-                user.setPassword(req.body.password);
-
-                user.save(user, function(err, data) {
-                    var token;
-                    token = user.generateJwt();
-                    res.status(200);
-                    res.json({
-                        "token" : token
-                    });
-                });
-            }
-            else{
-                return res.send(401)
-            }
-        })
 });
 
+//Login
 server.post('/login', restify.bodyParser(), function(req, res) {
     var token;
 
@@ -378,6 +370,7 @@ server.post('/login', restify.bodyParser(), function(req, res) {
         res.json({
             "token" : token
         });
+
     })
 
 })
@@ -394,6 +387,7 @@ server.get("/users", function (req, res, next) {
     return next();
 });
 
+//Get the Logged in user
 server.get('/profile', auth, function(req, res) {
     if (!req.payload._id) {
         res.send(401, {
@@ -410,6 +404,7 @@ server.get('/profile', auth, function(req, res) {
     }
 });
 
+//Get a Profile by name
 server.get('/profile/:userName', function(req, res){
     User.findOne({userName: req.params.userName})
         .then(function(data){
@@ -417,6 +412,7 @@ server.get('/profile/:userName', function(req, res){
         });
 });
 
+//Get a Profile by email
 server.get('/profileSearch/:email', auth,  function(req, res){
     User.findOne({email: req.params.email})
         .then(function(data){
@@ -424,6 +420,7 @@ server.get('/profileSearch/:email', auth,  function(req, res){
         });
 });
 
+//Update a Profile
 server.post('/profileUpdate', restify.bodyParser(), auth, function(req, res) {
     if (!req.payload._id) {
         res.send(401, {
@@ -436,7 +433,31 @@ server.post('/profileUpdate', restify.bodyParser(), auth, function(req, res) {
             });
     }
 });
+//Update Password
+server.post('/passwordUpdate', restify.bodyParser(), auth, function(req, res) {
+    if (!req.payload._id) {
+        res.send(401, {
+            "message": "UnauthorizedError: cannot update profile without being logged in to it"
+        });
+    } else{
+        User.findOne({_id: req.payload._id})
+            .then(function (user) {
+                if(user == null){
+                    return res.send(404);
+                }
+                else{
+                    var pw = req.body.toString();
+                    user.setPassword(pw);
+                    User.findByIdAndUpdate(user._id, user, {runValidators: true, upsert: true})
+                        .exec(function () {
+                            return res.send(200);
+                        });
+                }
+            });
+    }
+});
 
+//Update with new Friend
 server.post('/newFriendUpdate', restify.bodyParser(), function(req, res) {
     User.findByIdAndUpdate(req.body._id, req.body, {runValidators: true, upsert: true})
         .exec(function (err, user) {
@@ -444,6 +465,7 @@ server.post('/newFriendUpdate', restify.bodyParser(), function(req, res) {
         });
 });
 
+//Delete a Profile
 server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
     if (!req.payload._id) {
         res.send(401, {
@@ -457,13 +479,49 @@ server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
                         "message": "DeleteError: could not delete feature"
                     });
                 } else {
-                    value.remove();
-                    res.send(200, 'removed Feature');
-                }
+                    db.games.find({ "owner": value.email }, function (err, owngames){
+                        for(var i = 0; i < owngames.length; i++){
+                            db.games.remove({ '_id': owngames[i]._id }, function (err, data) {
+                                console.log("deleted game");
+                            })
+                        }
+                    })
+                    db.games.find({ "private": true }, function (err, games){
+                        for(var j = 0; j < games.length; j++){
+                            for(var k = 0; k < games[j].players.length; k++){
+                                if(games[j].players[k] == value.userName){
+                                    db.games.update({ _id: mongojs.ObjectId(games[j]._id)}, {$pull: {players: value.userName}}, function (err, game){
+                                        if (err) console.log(err);
+                                        console.log("updated game");
+                                    })
+                                }
+                            }
 
+                        }
+                    })
+                    User.find(function (err, users) {
+                        for(var l = 0; l < users.length; l++){
+                            for(var m = 0; m < users[l].friends.length; m++){
+                                if(users[l].friends[m] == value.userName){
+                                    users[l].friends.splice(m, 1);
+                                    User.findByIdAndUpdate(users[l]._id, users[l], {runValidators: true, upsert: true})
+                                        .exec(function (err, user) {
+                                            console.log("updated user")
+                                        });
+                                }
+                            }
+                        }
+                    })
+                    setTimeout(function(){
+                        value.remove();
+                        res.send(200, 'removed Feature');
+                    }, 3000)
+                }
             });
     }
 });
+
+//Invite a friend with email
 server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
     User.findOne({email: req.params.email})
         .then(function (data) {
@@ -475,6 +533,8 @@ server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
             }
         })
 });
+
+//Get a friends Profile
 server.get('/friendUser/:userName', restify.bodyParser(), function (req, res) {
     User.findOne({userName: req.params.userName})
         .then(function (data) {
@@ -486,11 +546,44 @@ server.get('/friendUser/:userName', restify.bodyParser(), function (req, res) {
             }
         })
 });
+
+//Update a friend
 server.post('/friendUpdate', restify.bodyParser(), function(req, res){
     User.findOne({_id: req.body._id})
         .then(function (user) {
             user.games.push(req.body.games[req.body.games.length-1])
             user.save();
             res.send(200)
+        });
+})
+
+//Reset Forgotten Password
+server.post('/forgotPassword/:email', function(req, res){
+    User.findOne({email: req.params.email})
+        .then(function (user) {
+            if(user == null){
+                return res.send(404);
+            }
+            else{
+                var min = 100000000;
+                var max = 999999999;
+                var pw = Math.floor(Math.random() * (max - min + 1)) + min;
+                pw = pw.toString()
+                console.log(pw)
+                user.setPassword(pw);
+                User.findByIdAndUpdate(user._id, user, {runValidators: true, upsert: true})
+                    .exec(function () {
+                        var data = {
+                            from: 'OriGami <postmaster@ori-gami.org>',
+                            to: req.params.email,
+                            subject: 'Password changed',
+                            text: 'Hello, Your password was changed to ' + pw + '! You can now login with this and change your password again in the account settings.'
+                        };
+                        mailgun.messages().send(data, function (error, body) {
+                            console.log(body);
+                        });
+                        return res.send(200);
+                    });
+            }
         });
 })
