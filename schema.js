@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const cfg = require('./config');
+const cfg = require('./lib/config');
 
 const userSchema = new mongoose.Schema({
   email: {

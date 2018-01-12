@@ -1,33 +1,31 @@
 'use strict';
 
 const restify = require('restify');
-const mongojs = require('mongojs');
-const cfg = require('./config');
+// const mongojs = require('mongojs');
+const config = require('./lib/config');
 const fs = require('fs');
 const multer = require('multer');
 const md5file = require('md5-file');
 const path = require('path');
 const im = require('imagemagick');
-// let db;
+
 const routes = require('./lib/routes');
 const db = require('./lib/db');
 
 const server = restify.createServer();
 
-// Usermanagement
-// const mongoose = require('mongoose'); // -> moved to lib/db.js
 const jwt = require('restify-jwt');
 require('./schema');
 // const User = mongoose.model('User');
 
 const auth = jwt({
-  secret: cfg.jwt_secret,
+  secret: config.jwt_secret,
   userProperty: 'payload'
 });
 
 //TODO only setup mailgun if config parameters are available
-const mailgun_api_key = cfg.mailgun_api_key || 'apikey';
-const mailgun_domain = cfg.mailgun_domain || 'domain';
+const mailgun_api_key = config.mailgun_api_key || 'apikey';
+const mailgun_domain = config.mailgun_domain || 'domain';
 const mailgun = require('mailgun-js')({ apiKey: mailgun_api_key, domain: mailgun_domain });
 
 /* Solving CORS development pains */
@@ -85,28 +83,6 @@ server.opts('/.*/', corsHandler, function (req, res, next) {
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 
-//Mongoose connection
-// mongoose.connect(cfg.dbconnectionstring);
-// const database = mongoose.connection;
-// database.on('error', console.error.bind(console, 'connection error:'));
-// mongoose.connection.on('connected', function () {
-//   console.log(`Mongoose connected to ${cfg.dbconnectionstring}`);
-// });
-
-// use this function to retry if a connection cannot be established immediately
-// (function connectWithRetry () {
-//   db = mongojs(cfg.dbconnectionstring, ['games']);
-//   db.on('error', function (err) {
-//     console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
-//     setTimeout(connectWithRetry, 5000);
-//   });
-
-//   db.on('connect', function () {
-//     console.log('database connected');
-
-//   });
-// })();
-
 /* Server wide declaration was causing problems when POSTing images with multer.
   Moved it to be specific to certain routes
 */
@@ -117,7 +93,7 @@ db.connect()
     // attach routes
     routes(server);
 
-    server.listen(cfg.port, function () {
+    server.listen(config.port, function () {
       console.log('Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)');
     });
   })
@@ -125,10 +101,6 @@ db.connect()
     console.error(err, 'Couldn\'t connect to MongoDB. Exiting...');
     process.exit(1);
   });
-
-// server.listen(cfg.port, function () {
-//   console.log('Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)');
-// });
 
 // Get only one certain game
 server.get('/games/item/:name', function (req, res, next) {
