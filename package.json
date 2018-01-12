@@ -11,11 +11,8 @@
     "start-dev-db": "docker-compose up -d db",
     "stop-dev-db": "docker-compose down db"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ifgi-sil/origami-backend.git"
-  },
-  "author": "",
+  "repository": "git+https://github.com/ifgi-sil/origami-backend.git",
+  "author": "Matthias Pfeil <matthias.pfeil@wwu.de>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ifgi-sil/origami-backend/issues"
