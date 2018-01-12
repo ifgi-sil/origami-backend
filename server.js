@@ -8,15 +8,17 @@ const multer = require('multer');
 const md5file = require('md5-file');
 const path = require('path');
 const im = require('imagemagick');
-let db;
+// let db;
+const routes = require('./lib/routes');
+const db = require('./lib/db');
 
 const server = restify.createServer();
 
 // Usermanagement
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose'); // -> moved to lib/db.js
 const jwt = require('restify-jwt');
 require('./schema');
-const User = mongoose.model('User');
+// const User = mongoose.model('User');
 
 const auth = jwt({
   secret: cfg.jwt_secret,
@@ -84,36 +86,49 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 
 //Mongoose connection
-mongoose.connect(cfg.dbconnectionstring);
-const database = mongoose.connection;
-database.on('error', console.error.bind(console, 'connection error:'));
-mongoose.connection.on('connected', function () {
-  console.log(`Mongoose connected to ${cfg.dbconnectionstring}`);
-});
+// mongoose.connect(cfg.dbconnectionstring);
+// const database = mongoose.connection;
+// database.on('error', console.error.bind(console, 'connection error:'));
+// mongoose.connection.on('connected', function () {
+//   console.log(`Mongoose connected to ${cfg.dbconnectionstring}`);
+// });
 
 // use this function to retry if a connection cannot be established immediately
-(function connectWithRetry () {
-  db = mongojs(cfg.dbconnectionstring, ['games']);
-  db.on('error', function (err) {
-    console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
-    setTimeout(connectWithRetry, 5000);
-  });
+// (function connectWithRetry () {
+//   db = mongojs(cfg.dbconnectionstring, ['games']);
+//   db.on('error', function (err) {
+//     console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
+//     setTimeout(connectWithRetry, 5000);
+//   });
 
-  db.on('connect', function () {
-    console.log('database connected');
+//   db.on('connect', function () {
+//     console.log('database connected');
 
-  });
-})();
+//   });
+// })();
 
 /* Server wide declaration was causing problems when POSTing images with multer.
   Moved it to be specific to certain routes
 */
 //server.use(restify.bodyParser());
 
+db.connect()
+  .then(() => {
+    // attach routes
+    routes(server);
 
-server.listen(cfg.port, function () {
-  console.log('Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)');
-});
+    server.listen(cfg.port, function () {
+      console.log('Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)');
+    });
+  })
+  .catch((err) => {
+    console.error(err, 'Couldn\'t connect to MongoDB. Exiting...');
+    process.exit(1);
+  });
+
+// server.listen(cfg.port, function () {
+//   console.log('Mongodb REST interface server started. Will only listen to requests from localhost (use nginx etc. downstream)');
+// });
 
 // Get only one certain game
 server.get('/games/item/:name', function (req, res, next) {
@@ -128,16 +143,16 @@ server.get('/games/item/:name', function (req, res, next) {
 });
 
 //Get all the games
-server.get('/games', function (req, res, next) {
-  db.games.find(function (err, games) {
-    res.writeHead(200, {
-      'Content-Type': 'application/json;charset=utf-8'
-    });
-    res.end(JSON.stringify(games));
-  });
+// server.get('/games', function (req, res, next) {
+//   db.games.find(function (err, games) {
+//     res.writeHead(200, {
+//       'Content-Type': 'application/json;charset=utf-8'
+//     });
+//     res.end(JSON.stringify(games));
+//   });
 
-  return next();
-});
+//   return next();
+// });
 
 // Add new game to the list
 server.post('/games/item', restify.bodyParser(), function (req, res, next) {
