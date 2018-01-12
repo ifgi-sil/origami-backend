@@ -5,12 +5,12 @@
 'use strict';
 
 const config = {
-  dbhost: 'db',
-  dbuser: '',
-  dbuserpass: '',
-  database: '',
-  mailgun_api_key: '',
-  mailgun_domain: '',
+  dbhost: 'localhost',
+  dbuser: 'admin',
+  dbuserpass: 'admin',
+  database: 'origami-api',
+  mailgun_api_key: 'api_key',
+  mailgun_domain: 'domain',
   jwt_secret: 'MY_SECRET',
   port: 5000
 };
