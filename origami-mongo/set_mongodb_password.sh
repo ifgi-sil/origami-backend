@@ -1,7 +1,7 @@
 #!/bin/bash
 
+DATABASE=${origami_database:-"origami-api"}
 USER=${origami_dbuser:-"admin"}
-DATABASE=origami-api
 PASS=${origami_dbuserpass:-"admin"}
 
 RET=1
@@ -14,7 +14,7 @@ done
 
 echo "=> Creating user ${USER} user with password ${PASS} in MongoDB"
 mongo admin << EOF
-use origami-api
+use $DATABASE
 db.createUser({user: '$USER', pwd: '$PASS', roles:['readWrite']})
 EOF
 

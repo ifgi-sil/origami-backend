@@ -7,7 +7,14 @@ services:
       - 5000:5000
     volumes:
       - ./server.js:/usr/src/app/server.js
-    env_file: .env
+    environment:
+      origami_mailgun_api_key: foo
+      origami_mailgun_domain: bar
+      origami_jwt_secret: secret
+      origami_dbuser: admin
+      origami_dbuserpass: admin
+      origami_database: origami-api
+      origami_dbhost: db
     depends_on:
       - db
 
@@ -16,5 +23,8 @@ services:
       context: ./origami-mongo
     volumes:
       - ./mongo-data:/data/db
-    env_file: .env
+    environment:
+      origami_database: origami-api
+      origami_dbuser: admin
+      origami_dbuserpass: admin
     command: --auth --storageEngine wiredTiger
