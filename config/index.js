@@ -1,19 +1,24 @@
 // specify your config items
-// environment variables starting with `OSEM_` will override the values here.
-// Example: `OSEM_targetfolder` will override the setting for `targetFolder`
+// environment variables starting with `origami_` will override the values here.
+// Example: `origami_database` will override the setting for `database`
+
 'use strict';
 
-var config = {
-    dbhost: 'db',
-    dbuser: '',
-    dbuserpass: '',
-    port: 5000
+const config = {
+  dbhost: 'db',
+  dbuser: '',
+  dbuserpass: '',
+  database: '',
+  mailgun_api_key: '',
+  mailgun_domain: '',
+  jwt_secret: 'MY_SECRET',
+  port: 5000
 };
 
-var env_has_dbconnectionstring = false;
-for (var envKey in process.env) {
+let env_has_dbconnectionstring = false;
+for (const envKey in process.env) {
   if (envKey.indexOf('origami_') === 0) {
-    var configKey = envKey.substring(8);
+    const configKey = envKey.substring(8);
     if (env_has_dbconnectionstring === false && configKey === 'dbconnectionstring') {
       env_has_dbconnectionstring = true;
     }
@@ -22,7 +27,7 @@ for (var envKey in process.env) {
 }
 
 if (env_has_dbconnectionstring === false) {
-  config.dbconnectionstring = config.dbuser + ':' + config.dbuserpass + '@' + config.dbhost + '/origami-api?authSource=origami-api';
+  config.dbconnectionstring = `${config.dbuser}:${config.dbuserpass}@${config.dbhost}/${config.database}?authSource=${config.database}`;
 }
 
 module.exports = config;
