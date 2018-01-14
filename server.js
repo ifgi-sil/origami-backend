@@ -15,7 +15,7 @@ const db = require('./lib/db');
 const server = restify.createServer();
 
 const jwt = require('restify-jwt');
-require('./schema');
+// require('./schema');
 // const User = mongoose.model('User');
 
 const auth = jwt({
@@ -82,6 +82,7 @@ server.opts('/.*/', corsHandler, function (req, res, next) {
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
+server.use(restify.bodyParser());
 
 /* Server wide declaration was causing problems when POSTing images with multer.
   Moved it to be specific to certain routes
