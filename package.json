@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ifgi-sil/origami-backend#readme",
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "imagemagick": "^0.1.3",
     "jsonwebtoken": "^7.3.0",
     "mailgun-js": "0.13.1",
