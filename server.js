@@ -23,10 +23,7 @@ const auth = jwt({
   userProperty: 'payload'
 });
 
-//TODO only setup mailgun if config parameters are available
-const mailgun_api_key = config.mailgun_api_key || 'apikey';
-const mailgun_domain = config.mailgun_domain || 'domain';
-const mailgun = require('mailgun-js')({ apiKey: mailgun_api_key, domain: mailgun_domain });
+
 
 /* Solving CORS development pains */
 server.use(
