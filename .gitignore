@@ -2,3 +2,4 @@ node_modules/
 mongo-data
 .env
 docker-compose.override.yml
+curls.txt
