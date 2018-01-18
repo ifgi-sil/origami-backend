@@ -24,12 +24,14 @@
     "jsonwebtoken": "^7.3.0",
     "mailgun-js": "0.13.1",
     "md5-file": "^3.1.1",
+    "moment": "^2.20.1",
     "mongojs": "^2.4.0",
     "mongoose": "^4.8.6",
     "multer": "^1.2.0",
     "restify": "^4.1.1",
     "restify-errors": "^5.0.0",
-    "restify-jwt": "^0.4.0"
+    "restify-jwt": "^0.4.0",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "cz-conventional-changelog": "^2.1.0"
