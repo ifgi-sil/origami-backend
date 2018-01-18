@@ -14,14 +14,14 @@ const db = require('./lib/db');
 
 const server = restify.createServer();
 
-const jwt = require('restify-jwt');
+// const jwt = require('restify-jwt');
 // require('./schema');
 // const User = mongoose.model('User');
 
-const auth = jwt({
-  secret: config.jwt_secret,
-  userProperty: 'payload'
-});
+// const auth = jwt({
+//   secret: config.jwt_secret,
+//   userProperty: 'payload'
+// });
 
 
 
@@ -268,16 +268,16 @@ server.post('/games/player', restify.bodyParser(), function (req, res, next) {
   return next();
 });
 
-server.post('/games/addplayer/:mail/:gamename', restify.bodyParser(), auth, function (req, res) {
-  User.findOne({ userName: req.params.mail })
-    .then(function (user) {
-      user.games.push(req.params.gamename);
-      User.findByIdAndUpdate(user._id, user, { runValidators: true, upsert: true })
-        .exec(function (err, user) {
-          res.send(200, user);
-        });
-    });
-});
+// server.post('/games/addplayer/:mail/:gamename', restify.bodyParser(), auth, function (req, res) {
+//   User.findOne({ userName: req.params.mail })
+//     .then(function (user) {
+//       user.games.push(req.params.gamename);
+//       User.findByIdAndUpdate(user._id, user, { runValidators: true, upsert: true })
+//         .exec(function (err, user) {
+//           res.send(200, user);
+//         });
+//     });
+// });
 
 server.post('/games/update/:game', restify.bodyParser(), function (req, res) {
   db.games.update({ _id: mongojs.ObjectId(req.params.game) }, { $push: { playerscores: req.body } }, function (err, game) {
@@ -309,21 +309,21 @@ server.get('/users', function (req, res, next) {
 });
 
 //Get the Logged in user
-server.get('/profile', auth, function (req, res) {
-  if (!req.payload._id) {
-    res.send(401, {
-      'message': 'UnauthorizedError: private profile'
-    });
-  } else {
-    User.findById(req.payload._id, function (err, user) {
-      if (err) {
-        res.send(401, 'couldnt load profile');
-      } else {
-        res.send(200, user);
-      }
-    });
-  }
-});
+// server.get('/profile', auth, function (req, res) {
+//   if (!req.payload._id) {
+//     res.send(401, {
+//       'message': 'UnauthorizedError: private profile'
+//     });
+//   } else {
+//     User.findById(req.payload._id, function (err, user) {
+//       if (err) {
+//         res.send(401, 'couldnt load profile');
+//       } else {
+//         res.send(200, user);
+//       }
+//     });
+//   }
+// });
 
 //Get a Profile by name
 server.get('/profile/:userName', function (req, res) {
@@ -334,49 +334,49 @@ server.get('/profile/:userName', function (req, res) {
 });
 
 //Get a Profile by email
-server.get('/profileSearch/:email', auth, function (req, res) {
-  User.findOne({ email: req.params.email })
-    .then(function (data) {
-      res.send(200, data);
-    });
-});
+// server.get('/profileSearch/:email', auth, function (req, res) {
+//   User.findOne({ email: req.params.email })
+//     .then(function (data) {
+//       res.send(200, data);
+//     });
+// });
 
 //Update a Profile
-server.post('/profileUpdate', restify.bodyParser(), auth, function (req, res) {
-  if (!req.payload._id) {
-    res.send(401, {
-      'message': 'UnauthorizedError: cannot update profile without being logged in to it'
-    });
-  } else {
-    User.findByIdAndUpdate(req.payload._id, req.body, { runValidators: true, upsert: true })
-      .exec(function (err, user) {
-        res.send(200, user);
-      });
-  }
-});
+// server.post('/profileUpdate', restify.bodyParser(), auth, function (req, res) {
+//   if (!req.payload._id) {
+//     res.send(401, {
+//       'message': 'UnauthorizedError: cannot update profile without being logged in to it'
+//     });
+//   } else {
+//     User.findByIdAndUpdate(req.payload._id, req.body, { runValidators: true, upsert: true })
+//       .exec(function (err, user) {
+//         res.send(200, user);
+//       });
+//   }
+// });
 //Update Password
-server.post('/passwordUpdate', restify.bodyParser(), auth, function (req, res) {
-  if (!req.payload._id) {
-    res.send(401, {
-      'message': 'UnauthorizedError: cannot update profile without being logged in to it'
-    });
-  } else {
-    User.findOne({ _id: req.payload._id })
-      .then(function (user) {
-        if (user == null) {
-          return res.send(404);
-        }
+// server.post('/passwordUpdate', restify.bodyParser(), auth, function (req, res) {
+//   if (!req.payload._id) {
+//     res.send(401, {
+//       'message': 'UnauthorizedError: cannot update profile without being logged in to it'
+//     });
+//   } else {
+//     User.findOne({ _id: req.payload._id })
+//       .then(function (user) {
+//         if (user == null) {
+//           return res.send(404);
+//         }
 
-        const pw = req.body.toString();
-        user.setPassword(pw);
-        User.findByIdAndUpdate(user._id, user, { runValidators: true, upsert: true })
-          .exec(function () {
-            return res.send(200);
-          });
+//         const pw = req.body.toString();
+//         user.setPassword(pw);
+//         User.findByIdAndUpdate(user._id, user, { runValidators: true, upsert: true })
+//           .exec(function () {
+//             return res.send(200);
+//           });
 
-      });
-  }
-});
+//       });
+//   }
+// });
 
 //Update with new Friend
 server.post('/newFriendUpdate', restify.bodyParser(), function (req, res) {
@@ -387,60 +387,60 @@ server.post('/newFriendUpdate', restify.bodyParser(), function (req, res) {
 });
 
 //Delete a Profile
-server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
-  if (!req.payload._id) {
-    res.send(401, {
-      'message': 'UnauthorizedError: cannot delete profile without being logged in to it'
-    });
-  } else {
-    User.findById(req.payload._id)
-      .exec(function (err, value) {
-        if (err) {
-          res.send(401, {
-            'message': 'DeleteError: could not delete feature'
-          });
-        } else {
-          db.games.find({ 'owner': value.email }, function (err, owngames) {
-            for (let i = 0; i < owngames.length; i++) {
-              db.games.remove({ '_id': owngames[i]._id }, function (err, data) {
-                console.log('deleted game');
-              });
-            }
-          });
-          db.games.find({ 'private': true }, function (err, games) {
-            for (let j = 0; j < games.length; j++) {
-              for (let k = 0; k < games[j].players.length; k++) {
-                if (games[j].players[k] == value.userName) {
-                  db.games.update({ _id: mongojs.ObjectId(games[j]._id) }, { $pull: { players: value.userName } }, function (err, game) {
-                    if (err) {console.log(err);}
-                    console.log('updated game');
-                  });
-                }
-              }
+// server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
+//   if (!req.payload._id) {
+//     res.send(401, {
+//       'message': 'UnauthorizedError: cannot delete profile without being logged in to it'
+//     });
+//   } else {
+//     User.findById(req.payload._id)
+//       .exec(function (err, value) {
+//         if (err) {
+//           res.send(401, {
+//             'message': 'DeleteError: could not delete feature'
+//           });
+//         } else {
+//           db.games.find({ 'owner': value.email }, function (err, owngames) {
+//             for (let i = 0; i < owngames.length; i++) {
+//               db.games.remove({ '_id': owngames[i]._id }, function (err, data) {
+//                 console.log('deleted game');
+//               });
+//             }
+//           });
+//           db.games.find({ 'private': true }, function (err, games) {
+//             for (let j = 0; j < games.length; j++) {
+//               for (let k = 0; k < games[j].players.length; k++) {
+//                 if (games[j].players[k] == value.userName) {
+//                   db.games.update({ _id: mongojs.ObjectId(games[j]._id) }, { $pull: { players: value.userName } }, function (err, game) {
+//                     if (err) {console.log(err);}
+//                     console.log('updated game');
+//                   });
+//                 }
+//               }
 
-            }
-          });
-          User.find(function (err, users) {
-            for (let l = 0; l < users.length; l++) {
-              for (let m = 0; m < users[l].friends.length; m++) {
-                if (users[l].friends[m] == value.userName) {
-                  users[l].friends.splice(m, 1);
-                  User.findByIdAndUpdate(users[l]._id, users[l], { runValidators: true, upsert: true })
-                    .exec(function (err, user) {
-                      console.log('updated user');
-                    });
-                }
-              }
-            }
-          });
-          setTimeout(function () {
-            value.remove();
-            res.send(200, 'removed Feature');
-          }, 3000);
-        }
-      });
-  }
-});
+//             }
+//           });
+//           User.find(function (err, users) {
+//             for (let l = 0; l < users.length; l++) {
+//               for (let m = 0; m < users[l].friends.length; m++) {
+//                 if (users[l].friends[m] == value.userName) {
+//                   users[l].friends.splice(m, 1);
+//                   User.findByIdAndUpdate(users[l]._id, users[l], { runValidators: true, upsert: true })
+//                     .exec(function (err, user) {
+//                       console.log('updated user');
+//                     });
+//                 }
+//               }
+//             }
+//           });
+//           setTimeout(function () {
+//             value.remove();
+//             res.send(200, 'removed Feature');
+//           }, 3000);
+//         }
+//       });
+//   }
+// });
 
 //Invite a friend with email
 server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
