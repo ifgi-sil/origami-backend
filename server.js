@@ -14,17 +14,6 @@ const db = require('./lib/db');
 
 const server = restify.createServer();
 
-// const jwt = require('restify-jwt');
-// require('./schema');
-// const User = mongoose.model('User');
-
-// const auth = jwt({
-//   secret: config.jwt_secret,
-//   userProperty: 'payload'
-// });
-
-
-
 /* Solving CORS development pains */
 server.use(
   restify.CORS({
@@ -125,30 +114,30 @@ server.get('/games/item/:name', function (req, res, next) {
 // });
 
 // Add new game to the list
-server.post('/games/item', restify.bodyParser(), function (req, res, next) {
-  const item = req.params;
-  db.games.save(item, function (err, data) {
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=utf-8'
-    });
-    res.end(JSON.stringify(data));
-  });
+// server.post('/games/item', restify.bodyParser(), function (req, res, next) {
+//   const item = req.params;
+//   db.games.save(item, function (err, data) {
+//     res.writeHead(200, {
+//       'Content-Type': 'application/json; charset=utf-8'
+//     });
+//     res.end(JSON.stringify(data));
+//   });
 
-  return next();
-});
+//   return next();
+// });
 
 // Delete certain game
-server.del('/games/item/:name', function (req, res, next) {
-  console.log(`DELETE request for GAME [${req.params.name}] from HOST [${req.headers.host}]`);
-  db.games.remove({ 'name': req.params.name }, function (err, data) {
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=utf-8'
-    });
-    res.end(JSON.stringify(data));
-  });
+// server.del('/games/item/:name', function (req, res, next) {
+//   console.log(`DELETE request for GAME [${req.params.name}] from HOST [${req.headers.host}]`);
+//   db.games.remove({ 'name': req.params.name }, function (err, data) {
+//     res.writeHead(200, {
+//       'Content-Type': 'application/json; charset=utf-8'
+//     });
+//     res.end(JSON.stringify(data));
+//   });
 
-  return next();
-});
+//   return next();
+// });
 
 
 /*server.del("games/item/:id", function (req, res, next) {
