@@ -286,16 +286,16 @@ server.get('/getShowGame/:id', function (req, res) {
 //****************************************************************************************
 //****************************************************************************************
 //Get all the users
-server.get('/users', function (req, res, next) {
-  User.find(function (err, users) {
-    res.writeHead(200, {
-      'Content-Type': 'application/json;charset=utf-8'
-    });
-    res.end(JSON.stringify(users));
-  });
+// server.get('/users', function (req, res, next) {
+//   User.find(function (err, users) {
+//     res.writeHead(200, {
+//       'Content-Type': 'application/json;charset=utf-8'
+//     });
+//     res.end(JSON.stringify(users));
+//   });
 
-  return next();
-});
+//   return next();
+// });
 
 //Get the Logged in user
 // server.get('/profile', auth, function (req, res) {
@@ -315,12 +315,12 @@ server.get('/users', function (req, res, next) {
 // });
 
 //Get a Profile by name
-server.get('/profile/:userName', function (req, res) {
-  User.findOne({ userName: req.params.userName })
-    .then(function (data) {
-      res.send(200, data);
-    });
-});
+// server.get('/profile/:userName', function (req, res) {
+//   User.findOne({ userName: req.params.userName })
+//     .then(function (data) {
+//       res.send(200, data);
+//     });
+// });
 
 //Get a Profile by email
 // server.get('/profileSearch/:email', auth, function (req, res) {
@@ -368,12 +368,12 @@ server.get('/profile/:userName', function (req, res) {
 // });
 
 //Update with new Friend
-server.post('/newFriendUpdate', restify.bodyParser(), function (req, res) {
-  User.findByIdAndUpdate(req.body._id, req.body, { runValidators: true, upsert: true })
-    .exec(function (err, user) {
-      res.send(200, user);
-    });
-});
+// server.post('/newFriendUpdate', restify.bodyParser(), function (req, res) {
+//   User.findByIdAndUpdate(req.body._id, req.body, { runValidators: true, upsert: true })
+//     .exec(function (err, user) {
+//       res.send(200, user);
+//     });
+// });
 
 //Delete a Profile
 // server.post('/profileDelete', restify.bodyParser(), auth, function (req, res) {
@@ -432,30 +432,30 @@ server.post('/newFriendUpdate', restify.bodyParser(), function (req, res) {
 // });
 
 //Invite a friend with email
-server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
-  User.findOne({ email: req.params.email })
-    .then(function (data) {
-      if (data == null) {
-        res.send(401);
-      }
-      else {
-        res.send(200, data);
-      }
-    });
-});
+// server.get('/inviteUser/:email', restify.bodyParser(), function (req, res) {
+//   User.findOne({ email: req.params.email })
+//     .then(function (data) {
+//       if (data == null) {
+//         res.send(401);
+//       }
+//       else {
+//         res.send(200, data);
+//       }
+//     });
+// });
 
 //Get a friends Profile
-server.get('/friendUser/:userName', restify.bodyParser(), function (req, res) {
-  User.findOne({ userName: req.params.userName })
-    .then(function (data) {
-      if (data == null) {
-        res.send(404);
-      }
-      else {
-        res.send(200, data);
-      }
-    });
-});
+// server.get('/friendUser/:userName', restify.bodyParser(), function (req, res) {
+//   User.findOne({ userName: req.params.userName })
+//     .then(function (data) {
+//       if (data == null) {
+//         res.send(404);
+//       }
+//       else {
+//         res.send(200, data);
+//       }
+//     });
+// });
 
 //Update a friend
 server.post('/friendUpdate', restify.bodyParser(), function (req, res) {
